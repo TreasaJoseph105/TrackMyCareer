@@ -1,28 +1,26 @@
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+// App.jsx
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Sidebar from "./components/Sidebar.jsx";
 import Profile from "./pages/Profile.jsx";
-
-function Home() {
-  return (
-    <div style={{ padding: "20px" }}>
-      <h1>Home Page</h1>
-      <p>Click the Profile link to view your profile.</p>
-    </div>
-  );
-}
+import Login from "./pages/Login.jsx";
+import Tracker from "./pages/Tracker.jsx";
+import ATCSScore from "./pages/ATCSScore.jsx";
 
 export default function App() {
   return (
     <Router>
-      <nav style={{ padding: "10px", borderBottom: "1px solid #ccc" }}>
-        <Link to="/" style={{ marginRight: "10px" }}>Home</Link>
-        <Link to="/profile">Profile</Link>
-      </nav>
-
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/profile" element={<Profile />} />
-      </Routes>
+      <div style={{ display: "flex" }}>
+        <Sidebar />
+        <div style={{ flex: 1 }}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/tracker" element={<Tracker />} />
+            <Route path="/atcs" element={<ATCSScore />} />
+          </Routes>
+        </div>
+      </div>
     </Router>
   );
 }
-
