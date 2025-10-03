@@ -5,7 +5,7 @@ import "./Sidebar.css"; // optional styling
 
 export default function Sidebar() {
   const menuItems = [
-    { name: "Job Suggestions", path: "/login" },
+    { name: "Job Suggestions", path: "/jobsuggestion" },
     { name: "Profile", path: "/profile" },
     { name: "Tracker", path: "/tracker" },
     { name: "ATS Score + Resume Upload", path: "/ats" },
