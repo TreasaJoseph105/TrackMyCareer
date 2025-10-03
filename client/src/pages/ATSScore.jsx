@@ -1,6 +1,6 @@
 import React from 'react'
 
-const ResumeUpload = () => {
+const ATSScore = () => {
   return (
     <div>
       
@@ -8,4 +8,4 @@ const ResumeUpload = () => {
   )
 }
 
-export default ResumeUpload
+export default ATSScore

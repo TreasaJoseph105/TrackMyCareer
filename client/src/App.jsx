@@ -3,9 +3,9 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Sidebar.jsx";
 import Profile from "./pages/Profile.jsx";
-import Login from "./pages/Login.jsx";
 import Tracker from "./pages/Tracker.jsx";
-import ATCSScore from "./pages/ATCSScore.jsx";
+import ATSScore from "./pages/ATSScore.jsx";
+import JobSuggestion from "./pages/JobSuggestion.jsx";
 
 export default function App() {
   return (
@@ -14,10 +14,10 @@ export default function App() {
         <Sidebar />
         <div style={{ flex: 1 }}>
           <Routes>
-            <Route path="/login" element={<Login />} />
+            <Route path="/jobsuggestion" element={<JobSuggestion />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/tracker" element={<Tracker />} />
-            <Route path="/atcs" element={<ATCSScore />} />
+            <Route path="/ats" element={<ATSScore />} />
           </Routes>
         </div>
       </div>

@@ -5,10 +5,10 @@ import "./Sidebar.css"; // optional styling
 
 export default function Sidebar() {
   const menuItems = [
-    { name: "Login", path: "/login" },
+    { name: "Job Suggestions", path: "/login" },
     { name: "Profile", path: "/profile" },
     { name: "Tracker", path: "/tracker" },
-    { name: "ATCS Score + Resume Upload", path: "/atcs" },
+    { name: "ATS Score + Resume Upload", path: "/ats" },
   ];
 
   return (
