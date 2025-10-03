@@ -1,0 +1,32 @@
+{
+  "name": "trackmycareer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "cd client && vite",
+    "build": "cd client && vite build",
+    "preview": "cd client && vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TreasaJoseph105/TrackMyCareer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TreasaJoseph105/TrackMyCareer/issues"
+  },
+  "homepage": "https://github.com/TreasaJoseph105/TrackMyCareer#readme",
+  "description": "",
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^6.14.0",
+    "vite": "^7.1.9"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.4"
+  }
+}
