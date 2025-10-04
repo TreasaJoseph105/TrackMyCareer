@@ -1,8 +1,11 @@
-const express = require('express');
-const router = express.Router();
-const { addTracker, getTrackers } = require('../controllers/trackerController');
+const express = require("express");
+const { getJobs, addJob, updateJob, deleteJob } = require("../controllers/trackerController");
 
-router.post('/', addTracker);
-router.get('/:userId', getTrackers);
+const router = express.Router();
+
+router.get("/", getJobs);
+router.post("/", addJob);
+router.put("/:id", updateJob);
+router.delete("/:id", deleteJob);
 
 module.exports = router;

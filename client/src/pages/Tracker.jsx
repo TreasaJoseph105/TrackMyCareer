@@ -1,194 +1,229 @@
-import React, { useState, useEffect } from 'react';
-import axios from '../services/api'; // make sure this points to your backend
+import React, { useState, useEffect } from "react";
 
-const statusOptions = ['Applied', 'Interview', 'Rejected', 'Hired'];
-
+const statusOptions = ["Applied", "Interview", "Offer", "Rejected"];
 const statusColors = {
-  Applied: 'bg-gold text-black',
-  Interview: 'bg-blue-600 text-white',
-  Rejected: 'bg-red-600 text-white',
-  Hired: 'bg-green-600 text-white'
+  Applied: "bg-blue-200 text-blue-800",
+  Interview: "bg-yellow-200 text-yellow-800",
+  Offer: "bg-green-200 text-green-800",
+  Rejected: "bg-red-200 text-red-800",
 };
 
-const Tracker = ({ userId }) => {
-  const [trackers, setTrackers] = useState([]);
-  const [form, setForm] = useState({ company: '', role: '', status: 'Applied', deadline: '', notes: '' });
-  const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({ company: '', role: '', status: 'Applied', deadline: '', notes: '' });
-  const [loading, setLoading] = useState(false);
+export default function Tracker() {
+  const [jobs, setJobs] = useState([]);
+  const [form, setForm] = useState({
+    company: "",
+    role: "",
+    status: "Applied",
+    deadline: "",
+  });
+  const [editId, setEditId] = useState(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  // Fetch tracker data
-  const fetchTrackers = async () => {
-    setLoading(true);
+  // Fetch jobs
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+  const fetchJobs = async () => {
     try {
-      const res = await axios.get(`/tracker/${userId}`);
-      setTrackers(res.data);
+      setLoading(true);
+      const res = await fetch("http://localhost:5000/api/tracker");
+      const data = await res.json();
+      setJobs(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Error fetching trackers:', err);
+      console.error("Error fetching jobs:", err);
+      setJobs([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  useEffect(() => { fetchTrackers(); }, []);
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
-  // Add a new job
-  const addTracker = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.company || !form.role) return;
-    setLoading(true);
-    try {
-      await axios.post('/tracker', { ...form, userId });
-      setForm({ company: '', role: '', status: 'Applied', deadline: '', notes: '' });
-      fetchTrackers();
-    } catch (err) {
-      console.error('Error adding tracker:', err);
+    setError("");
+
+    if (!form.company.trim() || !form.role.trim()) {
+      setError("Company and Role are required.");
+      return;
     }
-    setLoading(false);
+
+    try {
+      const method = editId ? "PUT" : "POST";
+      const url = editId
+        ? `http://localhost:5000/api/tracker/${editId}`
+        : "http://localhost:5000/api/tracker";
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      if (!response.ok) {
+        const errMsg = await response.text();
+        throw new Error(errMsg || "Failed to save job");
+      }
+
+      await fetchJobs();
+      setForm({ company: "", role: "", status: "Applied", deadline: "" });
+      setEditId(null);
+    } catch (err) {
+      console.error("Error saving job:", err.message);
+      setError(err.message);
+    }
   };
 
-  // Delete job
-  const deleteTracker = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this job?')) return;
-    setLoading(true);
-    try {
-      await axios.delete(`/tracker/${id}`);
-      fetchTrackers();
-    } catch (err) {
-      console.error('Error deleting tracker:', err);
-    }
-    setLoading(false);
-  };
-
-  // Start editing
-  const startEdit = (tracker) => {
-    setEditingId(tracker._id);
-    setEditForm({
-      company: tracker.company,
-      role: tracker.role,
-      status: tracker.status,
-      deadline: tracker.deadline ? tracker.deadline.slice(0, 10) : '',
-      notes: tracker.notes
+  const handleEdit = (job) => {
+    setForm({
+      company: job.company,
+      role: job.role,
+      status: job.status,
+      deadline: job.deadline ? job.deadline.split("T")[0] : "",
     });
+    setEditId(job._id);
+    setError("");
   };
 
-  // Save edited job
-  const saveEdit = async (id) => {
-    if (!editForm.company || !editForm.role) return;
-    setLoading(true);
+  const handleCancelEdit = () => {
+    setForm({ company: "", role: "", status: "Applied", deadline: "" });
+    setEditId(null);
+    setError("");
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this job?")) return;
     try {
-      await axios.put(`/tracker/${id}`, { ...editForm });
-      setEditingId(null);
-      fetchTrackers();
+      const res = await fetch(`http://localhost:5000/api/tracker/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete job");
+      await fetchJobs();
     } catch (err) {
-      console.error('Error saving edit:', err);
+      console.error(err);
+      setError("Failed to delete job");
     }
-    setLoading(false);
   };
 
   return (
-    <div className="max-w-6xl mx-auto mt-10 p-8 bg-black rounded-xl shadow-lg text-white">
-      <h2 className="text-3xl font-bold text-center text-gold mb-8">Job Tracker</h2>
+    <div className="flex-1 h-full bg-[#000000] p-6 flex flex-col font-custom">
+      <h1 className="text-4xl font-extrabold mb-8 text-[#CFFFE2] tracking-tight">
+        Job Tracker
+      </h1>
 
-      {/* Add Form */}
-      <form onSubmit={addTracker} className="flex flex-wrap gap-4 mb-8">
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      {/* Form */}
+      <form
+        onSubmit={handleSubmit}
+        className="mb-8 w-full bg-[#F6F6F6]/90 p-6 rounded-xl shadow-lg flex flex-col md:flex-row gap-4 border border-[#A2D5C6]"
+      >
         <input
+          type="text"
+          name="company"
           placeholder="Company"
           value={form.company}
-          onChange={e => setForm({ ...form, company: e.target.value })}
-          className="flex-1 min-w-[120px] p-2 rounded border border-gold bg-gray-800 text-white"
+          onChange={handleChange}
+          className="flex-1 px-3 py-2 rounded-lg border border-[#A2D5C6] bg-[#F6F6F6] text-[#000000] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#A2D5C6]"
         />
         <input
+          type="text"
+          name="role"
           placeholder="Role"
           value={form.role}
-          onChange={e => setForm({ ...form, role: e.target.value })}
-          className="flex-1 min-w-[120px] p-2 rounded border border-gold bg-gray-800 text-white"
+          onChange={handleChange}
+          className="flex-1 px-3 py-2 rounded-lg border border-[#A2D5C6] bg-[#F6F6F6] text-[#000000] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#A2D5C6]"
         />
-        <select
-          value={form.status}
-          onChange={e => setForm({ ...form, status: e.target.value })}
-          className="flex-1 min-w-[120px] p-2 rounded border border-gold bg-gray-800 text-white"
-        >
-          {statusOptions.map(opt => <option key={opt}>{opt}</option>)}
-        </select>
         <input
           type="date"
+          name="deadline"
           value={form.deadline}
-          onChange={e => setForm({ ...form, deadline: e.target.value })}
-          className="flex-1 min-w-[120px] p-2 rounded border border-gold bg-gray-800 text-white"
+          onChange={handleChange}
+          className="px-3 py-2 rounded-lg border border-[#A2D5C6] bg-[#F6F6F6] text-[#000000] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#A2D5C6]"
         />
-        <input
-          placeholder="Notes"
-          value={form.notes}
-          onChange={e => setForm({ ...form, notes: e.target.value })}
-          className="flex-2 min-w-[160px] p-2 rounded border border-gold bg-gray-800 text-white"
-        />
+        <select
+          name="status"
+          value={form.status}
+          onChange={handleChange}
+          className="px-3 py-2 rounded-lg border border-[#A2D5C6] bg-[#F6F6F6] text-[#000000] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#A2D5C6]"
+        >
+          {statusOptions.map((s) => (
+            <option key={s} value={s} className="bg-[#F6F6F6] text-[#000000]">
+              {s}
+            </option>
+          ))}
+        </select>
         <button
           type="submit"
-          disabled={loading}
-          className="bg-gold text-black font-bold px-4 py-2 rounded hover:bg-yellow-500 transition"
-        >Add</button>
+          className="bg-[#A2D5C6] text-[#000000] px-4 py-2 rounded-lg font-bold shadow hover:bg-[#CFFFE2] transition text-sm"
+        >
+          {editId ? "Update" : "Add"}
+        </button>
+        {editId && (
+          <button
+            type="button"
+            onClick={handleCancelEdit}
+            className="bg-gray-400 text-white px-4 py-2 rounded-lg font-bold shadow hover:bg-gray-500 transition text-sm"
+          >
+            Cancel
+          </button>
+        )}
       </form>
 
-      {/* Tracker Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto border-collapse text-white">
-          <thead>
-            <tr className="bg-gray-800 text-gold">
-              <th className="px-4 py-2">Company</th>
-              <th className="px-4 py-2">Role</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">Deadline</th>
-              <th className="px-4 py-2">Notes</th>
-              <th className="px-4 py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {trackers.map(t => (
-              <tr key={t._id} className={`${editingId === t._id ? 'bg-gray-700' : 'bg-gray-900'} hover:bg-gray-800 transition`}>
-                {editingId === t._id ? (
-                  <>
-                    <td><input value={editForm.company} onChange={e => setEditForm({ ...editForm, company: e.target.value })} className="w-full p-2 rounded border border-gold bg-gray-800 text-white" /></td>
-                    <td><input value={editForm.role} onChange={e => setEditForm({ ...editForm, role: e.target.value })} className="w-full p-2 rounded border border-gold bg-gray-800 text-white" /></td>
-                    <td>
-                      <select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })} className="w-full p-2 rounded border border-gold bg-gray-800 text-white">
-                        {statusOptions.map(opt => <option key={opt}>{opt}</option>)}
-                      </select>
-                    </td>
-                    <td><input type="date" value={editForm.deadline} onChange={e => setEditForm({ ...editForm, deadline: e.target.value })} className="w-full p-2 rounded border border-gold bg-gray-800 text-white" /></td>
-                    <td><input value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} className="w-full p-2 rounded border border-gold bg-gray-800 text-white" /></td>
-                    <td className="flex gap-2 justify-center">
-                      <button type="button" onClick={() => saveEdit(t._id)} disabled={loading} className="bg-green-600 hover:bg-green-500 px-3 py-1 rounded font-bold transition">Save</button>
-                      <button type="button" onClick={() => setEditingId(null)} disabled={loading} className="bg-red-600 hover:bg-red-500 px-3 py-1 rounded font-bold transition">Cancel</button>
-                    </td>
-                  </>
-                ) : (
-                  <>
-                    <td>{t.company}</td>
-                    <td>{t.role}</td>
-                    <td>
-                      <span className={`px-2 py-1 rounded-full text-sm font-semibold ${statusColors[t.status]}`}>{t.status}</span>
-                    </td>
-                    <td>{t.deadline ? new Date(t.deadline).toLocaleDateString() : ''}</td>
-                    <td>{t.notes}</td>
-                    <td className="flex gap-2 justify-center">
-                      <button type="button" onClick={() => startEdit(t)} disabled={loading} className="bg-gold text-black px-3 py-1 rounded font-bold hover:bg-yellow-500 transition">Edit</button>
-                      <button type="button" onClick={() => deleteTracker(t._id)} disabled={loading} className="bg-red-600 px-3 py-1 rounded font-bold hover:bg-red-500 transition">Delete</button>
-                    </td>
-                  </>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {trackers.length === 0 && (
-        <div className="text-center text-gold mt-6">
-          No jobs tracked yet. Add your first job above!
+      {/* Job List */}
+      {loading ? (
+        <p className="text-[#CFFFE2] text-center">Loading jobs...</p>
+      ) : (
+        <div className="flex-1 overflow-auto flex flex-col gap-4">
+          {jobs.length === 0 ? (
+            <p className="text-center text-[#CFFFE2] text-sm font-medium mt-6">
+              No jobs added yet.
+            </p>
+          ) : (
+            jobs.map((job) => (
+              <div
+                key={job._id}
+                className="flex flex-col md:flex-row items-center justify-between bg-[#A2D5C6]/10 p-4 rounded-lg shadow-md gap-4 border border-[#A2D5C6] hover:shadow-xl transition-all w-full"
+              >
+                <div className="flex-1">
+                  <h2 className="font-semibold text-lg text-[#CFFFE2] mb-1">
+                    {job.role}
+                  </h2>
+                  <p className="text-[#CFFFE2] text-sm mb-1">{job.company}</p>
+                  <p className="text-[#CFFFE2] text-xs">
+                    Deadline:{" "}
+                    <span className="font-medium">
+                      {job.deadline ? job.deadline.slice(0, 10) : "N/A"}
+                    </span>
+                  </p>
+                </div>
+                <div
+                  className={`px-4 py-1 rounded-full text-xs font-bold border shadow ${statusColors[job.status]}`}
+                >
+                  {job.status}
+                </div>
+                <div className="flex gap-2 mt-2 md:mt-0">
+                  <button
+                    onClick={() => handleEdit(job)}
+                    className="bg-[#A2D5C6] px-3 py-1 rounded-lg hover:bg-[#CFFFE2] text-[#000000] font-bold shadow text-xs transition"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(job._id)}
+                    className="bg-[#FF6B6B] px-3 py-1 rounded-lg hover:bg-[#FF4C4C] text-white font-bold shadow text-xs transition"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
     </div>
   );
-};
-
-export default Tracker;
+}
