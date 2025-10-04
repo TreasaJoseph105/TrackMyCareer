@@ -1,4 +1,5 @@
 import React from "react";
+<<<<<<< HEAD
 import { BrowserRouter as Router, useLocation } from "react-router-dom";
 import AppRoutes from "./routes.jsx";
 import Sidebar from "./components/Sidebar.jsx";
@@ -31,3 +32,34 @@ export default function App() {
     </Router>
   );
 }
+=======
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Sidebar from "./components/Sidebar";
+import Profile from "./pages/Profile";
+import Dashboard from "./pages/Dashboard";
+import JobSuggestion from "./pages/JobSuggestion";
+import Tracker from "./pages/Tracker";
+
+import "./App.css";
+
+function App() {
+  return (
+    <Router>
+      <div className="app-container">
+        <Sidebar />
+        <div className="main-content">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/jobs" element={<JobSuggestion />} />
+            <Route path="/tracker" element={<Tracker />} />
+          </Routes>
+        </div>
+      </div>
+    </Router>
+  );
+}
+
+export default App;
+>>>>>>> 41cbdac13983c2b956376753827286bc671ebbdb

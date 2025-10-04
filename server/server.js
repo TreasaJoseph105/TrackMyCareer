@@ -1,11 +1,16 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const connectDB = require('./config');
+import express from "express";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import cors from "cors";
+import profileRoutes from "./routes/profileRoutes.js";
 
+<<<<<<< HEAD
 const authRoutes = require('./routes/authRoutes');
 const atsRoutes = require('./routes/atsRoutes');
 const trackerRoutes = require('./routes/trackerRoutes');
+=======
+dotenv.config();
+>>>>>>> 41cbdac13983c2b956376753827286bc671ebbdb
 
 const app = express();
 
@@ -13,6 +18,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+<<<<<<< HEAD
 // Connect to MongoDB
 connectDB()
   .then(() => console.log('MongoDB connected'))
@@ -33,5 +39,16 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
+=======
+// Routes
+app.use("/api/profiles", profileRoutes);
+
+// Server
+>>>>>>> 41cbdac13983c2b956376753827286bc671ebbdb
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    console.log("✅ MongoDB Connected");
+  })
+  .catch((err) => console.log("❌ Mongo Error:", err));
