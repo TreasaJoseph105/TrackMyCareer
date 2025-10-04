@@ -1,19 +1,30 @@
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Sidebar from "./components/Sidebar";
+import Profile from "./pages/Profile";
+import Dashboard from "./pages/Dashboard";
+import JobSuggestion from "./pages/JobSuggestion";
+import Tracker from "./pages/Tracker";
 
-import React from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
-import AppRoutes from './routes.jsx';
-import Sidebar from './components/Sidebar.jsx';
+import "./App.css";
 
-export default function App() {
-    return (
-        <Router>
-            <div style={{ display: 'flex' }}>
-                <Sidebar />
-                <div style={{ flex: 1, padding: '20px' }}>
-                    <AppRoutes />
-                </div>
-            </div>
-        </Router>
-    );
+function App() {
+  return (
+    <Router>
+      <div className="app-container">
+        <Sidebar />
+        <div className="main-content">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/jobs" element={<JobSuggestion />} />
+            <Route path="/tracker" element={<Tracker />} />
+          </Routes>
+        </div>
+      </div>
+    </Router>
+  );
 }
 
+export default App;

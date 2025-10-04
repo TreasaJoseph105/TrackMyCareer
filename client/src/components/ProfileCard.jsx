@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 
 export default function ProfileCard() {
+  const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
     name: "",
     email: "",
@@ -15,30 +16,27 @@ export default function ProfileCard() {
     jobType: "",
     careerSummary: "",
     experience: "",
-    skills: "",
-    education10: "",
-    education12: "",
-    collegeCGPA: "",
+    skills: [],
+    education: {
+      tenth: "",
+      twelfth: "",
+      college: "",
+    },
     profilePic: "",
   });
 
-  const [isEditing, setIsEditing] = useState(false);
+  const [skillInput, setSkillInput] = useState("");
 
-  // Load profile
+  // Load saved data
   useEffect(() => {
     const saved = localStorage.getItem("userProfile");
     if (saved) setProfile(JSON.parse(saved));
   }, []);
 
-  // Save profile
-  const handleSave = () => {
+  // Save automatically
+  useEffect(() => {
     localStorage.setItem("userProfile", JSON.stringify(profile));
-    setIsEditing(false);
-  };
-
-  const handleChange = (key, value) => {
-    setProfile({ ...profile, [key]: value });
-  };
+  }, [profile]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -48,270 +46,328 @@ export default function ProfileCard() {
     }
   };
 
+  const addSkill = () => {
+    if (skillInput.trim() !== "") {
+      setProfile({ ...profile, skills: [...profile.skills, skillInput] });
+      setSkillInput("");
+    }
+  };
+
+  const removeSkill = (skill) => {
+    setProfile({
+      ...profile,
+      skills: profile.skills.filter((s) => s !== skill),
+    });
+  };
+
+  const handleSave = () => {
+    setIsEditing(false);
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
   return (
-    <div style={styles.page}>
-      {/* HEADER */}
-      <h1 style={styles.title}>My Profile</h1>
-
-      {/* MAIN GRID */}
-      <div style={styles.grid}>
-        {/* LEFT COLUMN */}
-        <div style={styles.column}>
-          {/* Profile Image */}
-          <div style={styles.card}>
-            <div style={styles.imageContainer}>
-              <img
-                src={
-                  profile.profilePic ||
-                  "https://cdn-icons-png.flaticon.com/512/847/847969.png"
-                }
-                alt="Profile"
-                style={styles.image}
-              />
-              {isEditing && (
-                <>
-                  <label htmlFor="fileUpload" style={styles.uploadBtn}>
-                    📸 Upload
-                  </label>
-                  <input
-                    id="fileUpload"
-                    type="file"
-                    accept="image/*"
-                    style={{ display: "none" }}
-                    onChange={handleImageUpload}
-                  />
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Personal Info */}
-          <div style={styles.card}>
-            <h2>👤 Personal Info</h2>
-            {["name", "email", "phone"].map((field) => (
-              <Field
-                key={field}
-                label={field}
-                value={profile[field]}
-                editable={isEditing}
-                onChange={(val) => handleChange(field, val)}
-              />
-            ))}
-          </div>
-
-          {/* Links */}
-          <div style={styles.card}>
-            <h2>🔗 Links</h2>
-            {["github", "linkedin", "portfolio"].map((field) => (
-              <Field
-                key={field}
-                label={field}
-                value={profile[field]}
-                editable={isEditing}
-                onChange={(val) => handleChange(field, val)}
-              />
-            ))}
-          </div>
+    <div
+      style={{
+        display: "flex",
+        gap: "20px",
+        maxWidth: "900px",
+        margin: "40px auto",
+        padding: "20px",
+        background: "#fff",
+        borderRadius: "16px",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+      }}
+    >
+      {/* LEFT SIDE */}
+      <div style={{ flex: "1", textAlign: "center" }}>
+        {/* Profile Picture */}
+        <div
+          style={{
+            width: "120px",
+            height: "120px",
+            borderRadius: "50%",
+            overflow: "hidden",
+            margin: "0 auto",
+            border: "3px solid #ccc",
+          }}
+        >
+          <img
+            src={
+              profile.profilePic ||
+              "https://cdn-icons-png.flaticon.com/512/847/847969.png"
+            }
+            alt="Profile"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
         </div>
+        {isEditing && (
+          <>
+            <label
+              htmlFor="fileUpload"
+              style={{
+                display: "inline-block",
+                marginTop: "10px",
+                backgroundColor: "#4f46e5",
+                color: "white",
+                padding: "6px 12px",
+                borderRadius: "8px",
+                cursor: "pointer",
+              }}
+            >
+              📸 Upload
+            </label>
+            <input
+              id="fileUpload"
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleImageUpload}
+            />
+          </>
+        )}
 
-        {/* MIDDLE COLUMN */}
-        <div style={styles.column}>
-          <div style={styles.card}>
-            <h2>💼 Job Preferences</h2>
-            {["role", "industry", "location", "salary", "jobType"].map(
-              (field) => (
-                <Field
-                  key={field}
-                  label={field}
-                  value={profile[field]}
-                  editable={isEditing}
-                  onChange={(val) => handleChange(field, val)}
-                />
-              )
-            )}
-          </div>
-
-          <div style={styles.card}>
-            <h2>📝 Career Summary</h2>
+        <h2 style={{ marginTop: "20px" }}>Personal Info</h2>
+        {["name", "email", "phone"].map((field) => (
+          <div key={field}>
             {isEditing ? (
-              <textarea
-                style={styles.textarea}
-                value={profile.careerSummary}
+              <input
+                placeholder={field}
+                value={profile[field]}
                 onChange={(e) =>
-                  handleChange("careerSummary", e.target.value)
+                  setProfile({ ...profile, [field]: e.target.value })
                 }
+                style={inputStyle}
               />
             ) : (
-              <p style={styles.value}>{profile.careerSummary || "—"}</p>
+              <p>
+                <strong>{field.toUpperCase()}:</strong>{" "}
+                {profile[field] || "—"}
+              </p>
             )}
           </div>
+        ))}
+      </div>
 
-          <div style={styles.card}>
-            <h2>🏢 Experience</h2>
-            {isEditing ? (
-              <textarea
-                style={styles.textarea}
-                value={profile.experience}
-                onChange={(e) => handleChange("experience", e.target.value)}
+      {/* RIGHT SIDE */}
+      <div style={{ flex: "2" }}>
+        <div style={{ textAlign: "right" }}>
+          {isEditing ? (
+            <button onClick={handleSave} style={saveBtn}>
+              💾 Save
+            </button>
+          ) : (
+            <button onClick={handleEdit} style={editBtn}>
+              ✏️ Edit
+            </button>
+          )}
+        </div>
+
+        {/* Links */}
+        <Section title="Links">
+          {["github", "linkedin", "portfolio"].map((field) =>
+            isEditing ? (
+              <input
+                key={field}
+                placeholder={field}
+                value={profile[field]}
+                onChange={(e) =>
+                  setProfile({ ...profile, [field]: e.target.value })
+                }
+                style={inputStyle}
               />
             ) : (
-              <p style={styles.value}>{profile.experience || "—"}</p>
-            )}
-          </div>
-        </div>
+              <p key={field}>
+                <strong>{field.toUpperCase()}:</strong>{" "}
+                {profile[field] || "—"}
+              </p>
+            )
+          )}
+        </Section>
 
-        {/* RIGHT COLUMN */}
-        <div style={styles.column}>
-          <div style={styles.card}>
-            <h2>🧠 Skills</h2>
-            <Field
-              label="skills"
-              value={profile.skills}
-              editable={isEditing}
-              onChange={(val) => handleChange("skills", val)}
-              placeholder="E.g. React, Node, MongoDB"
-            />
-          </div>
-
-          <div style={styles.card}>
-            <h2>🎓 Education</h2>
-            <Field
-              label="10th %"
-              value={profile.education10}
-              editable={isEditing}
-              onChange={(val) => handleChange("education10", val)}
-            />
-            <Field
-              label="12th %"
-              value={profile.education12}
-              editable={isEditing}
-              onChange={(val) => handleChange("education12", val)}
-            />
-            <Field
-              label="College CGPA"
-              value={profile.collegeCGPA}
-              editable={isEditing}
-              onChange={(val) => handleChange("collegeCGPA", val)}
-            />
-          </div>
-
-          {/* Buttons */}
-          <div style={{ textAlign: "center", marginTop: "20px" }}>
-            {isEditing ? (
-              <button style={styles.saveBtn} onClick={handleSave}>
-                💾 Save
-              </button>
+        {/* Job Preferences */}
+        <Section title="Job Preferences">
+          {["role", "industry", "location", "salary", "jobType"].map((field) =>
+            isEditing ? (
+              <input
+                key={field}
+                placeholder={field}
+                value={profile[field]}
+                onChange={(e) =>
+                  setProfile({ ...profile, [field]: e.target.value })
+                }
+                style={inputStyle}
+              />
             ) : (
-              <button style={styles.editBtn} onClick={() => setIsEditing(true)}>
-                ✏️ Edit Profile
+              <p key={field}>
+                <strong>{field.toUpperCase()}:</strong>{" "}
+                {profile[field] || "—"}
+              </p>
+            )
+          )}
+        </Section>
+
+        {/* Career Summary */}
+        <Section title="Career Summary">
+          {isEditing ? (
+            <textarea
+              placeholder="Write a short summary about your career..."
+              value={profile.careerSummary}
+              onChange={(e) =>
+                setProfile({ ...profile, careerSummary: e.target.value })
+              }
+              style={inputStyle}
+            />
+          ) : (
+            <p>{profile.careerSummary || "—"}</p>
+          )}
+        </Section>
+
+        {/* Experience */}
+        <Section title="Experience">
+          {isEditing ? (
+            <textarea
+              placeholder="Add your work experience..."
+              value={profile.experience}
+              onChange={(e) =>
+                setProfile({ ...profile, experience: e.target.value })
+              }
+              style={inputStyle}
+            />
+          ) : (
+            <p>{profile.experience || "—"}</p>
+          )}
+        </Section>
+
+        {/* Skills */}
+        <Section title="Skills">
+          {isEditing && (
+            <div style={{ display: "flex", gap: "8px" }}>
+              <input
+                placeholder="Add skill"
+                value={skillInput}
+                onChange={(e) => setSkillInput(e.target.value)}
+                style={inputStyle}
+              />
+              <button onClick={addSkill} style={addBtn}>
+                ➕
               </button>
-            )}
+            </div>
+          )}
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            {profile.skills.map((skill) => (
+              <span key={skill} style={skillTag}>
+                {skill}
+                {isEditing && (
+                  <button
+                    onClick={() => removeSkill(skill)}
+                    style={removeSkillBtn}
+                  >
+                    ❌
+                  </button>
+                )}
+              </span>
+            ))}
           </div>
-        </div>
+        </Section>
+
+        {/* Education */}
+        <Section title="Education">
+          {Object.keys(profile.education).map((field) =>
+            isEditing ? (
+              <input
+                key={field}
+                placeholder={field}
+                value={profile.education[field]}
+                onChange={(e) =>
+                  setProfile({
+                    ...profile,
+                    education: {
+                      ...profile.education,
+                      [field]: e.target.value,
+                    },
+                  })
+                }
+                style={inputStyle}
+              />
+            ) : (
+              <p key={field}>
+                <strong>{field.toUpperCase()}:</strong>{" "}
+                {profile.education[field] || "—"}
+              </p>
+            )
+          )}
+        </Section>
       </div>
     </div>
   );
 }
 
-// Reusable Field component
-function Field({ label, value, editable, onChange, placeholder }) {
-  return (
-    <div style={styles.inputGroup}>
-      <label style={styles.label}>{label.toUpperCase()}</label>
-      {editable ? (
-        <input
-          style={styles.input}
-          value={value}
-          placeholder={placeholder || `Enter ${label}`}
-          onChange={(e) => onChange(e.target.value)}
-        />
-      ) : (
-        <p style={styles.value}>{value || "—"}</p>
-      )}
-    </div>
-  );
-}
+// 🔹 Reusable Section Component
+const Section = ({ title, children }) => (
+  <div
+    style={{
+      marginTop: "20px",
+      padding: "16px",
+      border: "1px solid #eee",
+      borderRadius: "12px",
+      background: "#fafafa",
+    }}
+  >
+    <h3 style={{ marginBottom: "10px", color: "#333" }}>{title}</h3>
+    {children}
+  </div>
+);
 
-// Styles
-const styles = {
-  page: {
-    background: "#f9fafb",
-    minHeight: "100vh",
-    padding: "30px 60px",
-  },
-  title: {
-    textAlign: "center",
-    marginBottom: "30px",
-    fontSize: "2rem",
-    fontWeight: "bold",
-    color: "#1f2937",
-  },
-  grid: {
-    display: "flex",
-    gap: "30px",
-    justifyContent: "center",
-  },
-  column: {
-    flex: 1,
-    minWidth: "300px",
-  },
-  card: {
-    background: "#fff",
-    padding: "20px 25px",
-    borderRadius: "12px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
-    marginBottom: "25px",
-  },
-  imageContainer: { textAlign: "center", marginBottom: "15px" },
-  image: {
-    width: "140px",
-    height: "140px",
-    borderRadius: "50%",
-    border: "3px solid #e5e7eb",
-    objectFit: "cover",
-  },
-  uploadBtn: {
-    display: "inline-block",
-    marginTop: "10px",
-    backgroundColor: "#4f46e5",
-    color: "white",
-    padding: "6px 12px",
-    borderRadius: "8px",
-    cursor: "pointer",
-  },
-  inputGroup: { marginBottom: "12px" },
-  label: { fontWeight: "600", color: "#374151" },
-  input: {
-    width: "100%",
-    padding: "8px",
-    border: "1px solid #d1d5db",
-    borderRadius: "8px",
-    marginTop: "5px",
-  },
-  textarea: {
-    width: "100%",
-    minHeight: "80px",
-    padding: "10px",
-    borderRadius: "8px",
-    border: "1px solid #d1d5db",
-  },
-  value: { marginTop: "6px", color: "#111827" },
-  editBtn: {
-    backgroundColor: "#4f46e5",
-    color: "#fff",
-    padding: "10px 24px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    border: "none",
-    fontSize: "16px",
-  },
-  saveBtn: {
-    backgroundColor: "#16a34a",
-    color: "#fff",
-    padding: "10px 24px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    border: "none",
-    fontSize: "16px",
-  },
+// 🎨 Styles
+const inputStyle = {
+  display: "block",
+  width: "100%",
+  padding: "8px",
+  margin: "6px 0",
+  border: "1px solid #ccc",
+  borderRadius: "8px",
+};
+
+const editBtn = {
+  background: "#facc15",
+  border: "none",
+  padding: "6px 12px",
+  borderRadius: "8px",
+  cursor: "pointer",
+};
+
+const saveBtn = {
+  background: "#22c55e",
+  border: "none",
+  padding: "6px 12px",
+  borderRadius: "8px",
+  cursor: "pointer",
+  color: "white",
+};
+
+const addBtn = {
+  background: "#4f46e5",
+  color: "white",
+  border: "none",
+  padding: "6px 10px",
+  borderRadius: "8px",
+  cursor: "pointer",
+};
+
+const skillTag = {
+  background: "#e0e7ff",
+  padding: "6px 10px",
+  borderRadius: "12px",
+  display: "flex",
+  alignItems: "center",
+  gap: "6px",
+};
+
+const removeSkillBtn = {
+  background: "transparent",
+  border: "none",
+  cursor: "pointer",
 };
